@@ -46,3 +46,14 @@
   (lambda (st e)
     (let ([ee (subst st e)])
       (my-eval ee))))
+
+; for goto in TM
+(define Car 
+  (lambda Band (if (null? Band) 'B (car Band))))
+
+(define Cdr 
+  (lambda Band (if (null? Band) '() (cdr Band))))
+
+(define new-Qtail 
+  (lambda (Q label) 
+    (member label Q)))

@@ -1,7 +1,7 @@
 #lang racket
 
 (require "auxiliary_functions.rkt")
-(provide int)
+(provide int int-assn int-TM)
 
 (define fill_in
   (lambda () '()))
@@ -34,19 +34,56 @@
 
 (define int
   (lambda (p d)
-    (fill_in)))
+    (let ([initial-vars (match (car p) [(list read vars ...) vars])]
+          [first-bb (cdadr p)])
+      (int-bb (initial-prog p) (initial-st initial-vars d) first-bb))))
 
 (define int-bb
   (lambda (prog st bb)
-    (fill_in)))
+    (match bb [(list assns ... jump)
+                (int-jump prog (foldl (lambda (a b) (int-assn b a)) st assns) jump)])))
 
 (define int-jump
   (lambda (prog st jump)
-    (fill_in)))
+    (match jump [`(goto ,label) 
+                  (int-bb prog st (bb-lookup prog label))]
+                [`(if ,cond ,then ,else) 
+                  (int-bb prog st (bb-lookup prog (if (eval-exp st cond) then else)))]
+                [`(return ,expr) (eval-exp st expr)])))
 
 (define int-assn
   (lambda (st assn)
-    (fill_in)))
+    (match assn [`(:= ,var ,expr) (st-set st var (eval-exp st expr))])))
 
 (define int-TM
-  (fill_in))
+  '((read Q Right)
+    (init (:= Qtail Q)
+          (:= Left '())
+          (goto loop))
+    (loop (if (null? Qtail) stop cont))
+    (cont (:= Inst (cdar Qtail))
+          (:= Qtail (cdr Qtail))
+          (:= Ins (car Inst))
+          (if (equal? Ins 'right) do-right cont1))
+    (cont1 (if (equal? Ins 'left) do-left cont2))
+    (cont2 (if (equal? Ins 'write) do-write cont3))
+    (cont3 (if (equal? Ins 'goto) do-goto cont4))
+    (cont4 (if (equal? Ins 'if) do-if error))
+    (do-right (:= Left (cons (Car Right) Left))
+              (:= Right (Cdr Right))
+              (goto loop))
+    (do-left (:= Right (cons (Car Left) Right))
+            (:= Left (Cdr Left))
+            (goto loop))
+    (do-write (:= Symbol (cadr Inst))
+              (:= Right (cons Symbol (cdr Right)))
+              (goto loop))
+    (do-goto (:= Next-label (cadr Inst))
+            (goto jump))
+    (do-if (:= Symbol (cadr Inst))
+          (:= Next-label (cadddr Inst))
+          (if (equal? Symbol (car Right)) jump loop))
+    (jump (:= Qtail (new-Qtail Q Next-label))
+          (goto loop))
+    (error (return ('unknown instruction ,Inst)))
+    (stop (return Right))))
