@@ -34,7 +34,7 @@
 
 (define int
   (lambda (p d)
-    (let ([initial-vars (match (car p) [(list read vars ...) vars])]
+    (let ([initial-vars (match (car p) [(list 'read vars ...) vars])]
           [first-bb (cdadr p)])
       (int-bb (initial-prog p) (initial-st initial-vars d) first-bb))))
 
@@ -76,13 +76,13 @@
             (:= Left (Cdr Left))
             (goto loop))
     (do-write (:= Symbol (cadr Inst))
-              (:= Right (cons Symbol (cdr Right)))
+              (:= Right (cons Symbol (Cdr Right)))
               (goto loop))
     (do-goto (:= Next-label (cadr Inst))
             (goto jump))
     (do-if (:= Symbol (cadr Inst))
           (:= Next-label (cadddr Inst))
-          (if (equal? Symbol (car Right)) jump loop))
+          (if (equal? Symbol (Car Right)) jump loop))
     (jump (:= Qtail (new-Qtail Q Next-label))
           (goto loop))
     (error (return ('unknown instruction ,Inst)))

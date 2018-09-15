@@ -49,11 +49,15 @@
 
 ; for goto in TM
 (define Car 
-  (lambda Band (if (null? Band) 'B (car Band))))
+  (lambda (Band) (if (null? Band) 'B (car Band))))
 
 (define Cdr 
-  (lambda Band (if (null? Band) '() (cdr Band))))
+  (lambda (Band) (if (null? Band) '() (cdr Band))))
 
 (define new-Qtail 
   (lambda (Q label) 
-    (member label Q)))
+    (define label-t (format "(~a:" label)) ;;; don't know how to match datums partially
+    (member label-t Q                      ;;; so using string comparison as a workaround
+      (lambda (s-t t) 
+        (define t-t (format "~a" t))
+        (string-prefix? t-t s-t)))))
