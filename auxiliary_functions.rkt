@@ -56,8 +56,5 @@
 
 (define new-Qtail 
   (lambda (Q label) 
-    (define label-t (format "(~a:" label)) ;;; don't know how to match datums partially
-    (member label-t Q                      ;;; so using string comparison as a workaround
-      (lambda (s-t t) 
-        (define t-t (format "~a" t))
-        (string-prefix? t-t s-t)))))
+    (member label Q
+      (lambda (s t) (equal? s (car t))))))
